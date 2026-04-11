@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Solana wallet NFT / cNFT lookup (RaikuCN)</title>
+  <link rel="icon" type="image/png" href="assets/site-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0c0d12;
+      --surface: #14161f;
+      --border: #252838;
+      --text: #e8eaef;
+      --muted: #8b90a0;
+      --accent: #9945ff;
+      --accent-dim: #7c3aed;
+      --mint: #14f195;
+      --danger: #f43f5e;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+      text-align: center;
+    }
+
+    header {
+      margin-bottom: 1.75rem;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .site-logo {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      flex-shrink: 0;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: #0a0a0a;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .row:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.85rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 0.65rem 0.75rem;
+    }
+
+    textarea {
+      min-height: 200px;
+      resize: vertical;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    select {
+      text-align: left;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(153, 69, 255, 0.2);
+    }
+
+    .field-api {
+      flex: 1 1 280px;
+    }
+
+    .field-net {
+      flex: 0 0 auto;
+      min-width: 140px;
+    }
+
+    .pwd-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+    }
+
+    .pwd-modal[hidden] {
+      display: none !important;
+    }
+
+    .pwd-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+    }
+
+    .pwd-modal-card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+    }
+
+    .pwd-modal-card p {
+      margin: 0 0 1rem;
+      font-size: 0.9rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .pwd-modal-card input[type="password"] {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    .pwd-modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    .checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .checks label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
+      text-transform: none;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .checks input[type="checkbox"] {
+      width: 1rem;
+      height: 1rem;
+      accent-color: rgb(192, 255, 56);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      justify-content: center;
+    }
+
+    button {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: none;
+      border-radius: 8px;
+      padding: 0.65rem 1.25rem;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.15s, background-color 0.15s ease,
+        color 0.15s ease, filter 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: rgb(192, 255, 56);
+      color: #0c0d12;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.06);
+    }
+
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgb(192, 255, 56);
+      color: #0c0d12;
+    }
+
+    .progress {
+      font-size: 0.85rem;
+      color: var(--mint);
+      margin-top: 0.75rem;
+      min-height: 1.25em;
+      text-align: center;
+    }
+
+    .results {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+      width: 100%;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      width: 100%;
+      max-width: 720px;
+      text-align: left;
+    }
+
+    .card-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem 1rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(153, 69, 255, 0.06);
+    }
+
+    .head-main {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .addr-serial {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--mint);
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+
+    .addr {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.8rem;
+      word-break: break-all;
+    }
+
+    .addr a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .addr a:hover {
+      color: var(--mint);
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: var(--border);
+      color: var(--muted);
+    }
+
+    .badge.ok {
+      background: rgba(20, 241, 149, 0.15);
+      color: var(--mint);
+    }
+
+    .badge.err {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--danger);
+    }
+
+    .card-body {
+      padding: 0;
+    }
+
+    .err-msg {
+      padding: 1rem 1.25rem;
+      color: var(--danger);
+      font-size: 0.9rem;
+    }
+
+    .nft-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .nft-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.65rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+
+    .nft-list li:last-child {
+      border-bottom: none;
+    }
+
+    .nft-idx {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 2rem;
+    }
+
+    .nft-name {
+      word-break: break-word;
+    }
+
+    .nft-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .nft-collection {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .tag-cnft {
+      flex-shrink: 0;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(153, 69, 255, 0.25);
+      color: #c4b5fd;
+    }
+
+    .tag-legacy {
+      background: rgba(139, 144, 160, 0.2);
+      color: var(--muted);
+    }
+
+    .empty-nft {
+      padding: 1rem 1.25rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .site-footer {
+      margin-top: 2rem;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 720px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .site-footer p {
+      margin: 0 0 0.5rem;
+    }
+
+    .site-footer p:last-child {
+      margin-bottom: 0;
+    }
+
+    .site-footer a {
+      color: var(--mint);
+      text-decoration: none;
+    }
+
+    .site-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .site-footer-dev {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+
+    .site-footer-dev-row {
+      flex: 1 1 220px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      text-align: left;
+    }
+
+    .site-footer-dev-left {
+      flex: 0 1 auto;
+      text-align: left;
+      max-width: min(100%, 28rem);
+    }
+
+    .site-footer-dev-sep {
+      color: var(--muted);
+    }
+
+    .site-footer-dev-gh-link {
+      word-break: break-all;
+    }
+
+    .site-footer-dev-right {
+      flex: 0 1 auto;
+      text-align: right;
+    }
+
+    .site-footer-dev-right-inner {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.5rem;
+      max-width: min(100%, 28rem);
+    }
+
+    .site-footer-dev-raiku-tg {
+      font-weight: 600;
+    }
+
+    .site-footer-raiku-logo {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: #0a0a0a;
+      flex-shrink: 0;
+    }
+
+    .site-footer-tg {
+      margin: 0.45rem 0 0;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .site-footer-tg-hint {
+      color: var(--muted);
+    }
+
+    .site-footer-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .site-footer-tip {
+      margin-top: 0.75rem;
+    }
+
+    .site-footer-donate {
+      margin-top: 0.35rem;
+    }
+
+    .site-footer-tip-addr {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.8rem;
+      word-break: break-all;
+      color: var(--mint);
+      cursor: pointer;
+      display: inline-block;
+      max-width: 100%;
+      padding: 0.15rem 0;
+      border-radius: 4px;
+      transition: color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .site-footer-tip-addr:hover {
+      color: rgb(192, 255, 56);
+      background: rgba(192, 255, 56, 0.08);
+    }
+
+    .results-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 720px;
+      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .results-meta[hidden] {
+      display: none !important;
+    }
+
+    .pager-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem 1.5rem;
+      width: 100%;
+    }
+
+    .pager-row label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .pager-row select#pageSizeSelect {
+      width: auto;
+      min-width: 5rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .pager-btns {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .pager-btns button {
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    #pageInfo {
+      font-size: 0.85rem;
+      color: var(--muted);
+      min-width: 12rem;
+      text-align: center;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+
+    .lang-btn {
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+    }
+
+    .lang-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .lang-btn[aria-pressed="true"] {
+      background: rgb(192, 255, 56);
+      color: #0c0d12;
+      border-color: rgb(192, 255, 56);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <img
+        class="site-logo"
+        src="assets/site-logo.png"
+        width="52"
+        height="52"
+        alt="Raiku China"
+        data-i18n-alt-logo
+        decoding="async"
+      />
+      <h1 data-i18n="pageTitle">Solana wallet NFT / cNFT lookup (RaikuCN)</h1>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" id="langEn" aria-pressed="true">EN</button>
+        <button type="button" class="lang-btn" id="langZh" aria-pressed="false">中文</button>
+      </div>
+    </header>
+
+    <div class="panel">
+      <label for="addresses" data-i18n="labelWallets">Wallet addresses</label>
+      <textarea
+        id="addresses"
+        data-i18n-placeholder="phWallets"
+        placeholder="Enter Solana wallet address(es)..."
+      ></textarea>
+      <div class="checks">
+        <label>
+          <input type="checkbox" id="onlyCompressed" checked />
+          <span data-i18n="chkCompressed">Compressed NFTs (cNFT) only</span>
+        </label>
+        <label>
+          <input type="checkbox" id="onlyRaikuCollection" checked />
+          <span data-i18n="chkRaiku">Only collections whose name contains Raiku</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn-primary" id="btnRun" data-i18n="btnRun">Run query</button>
+        <button type="button" class="btn-secondary" id="btnClear" data-i18n="btnClear">Clear results</button>
+      </div>
+      <div class="progress" id="progress" aria-live="polite"></div>
+    </div>
+
+    <div class="results-meta" id="resultsMeta" hidden>
+      <div class="pager-row">
+        <label>
+          <span data-i18n="pagerPerPage">Per page</span>
+          <select id="pageSizeSelect" data-i18n-title="pageSizeTitle" title="Wallets per page">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span data-i18n="pagerWallets">wallets</span>
+        </label>
+        <div class="pager-btns">
+          <button type="button" class="btn-secondary" id="btnPrev" data-i18n="btnPrev">Prev</button>
+          <span id="pageInfo"></span>
+          <button type="button" class="btn-secondary" id="btnNext" data-i18n="btnNext">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="results" id="results"></div>
+
+    <footer class="site-footer">
+      <p data-i18n="footerHelius">
+        This page only talks to Helius in your browser. Your addresses are not sent to our servers or
+        stored.
+      </p>
+      <p class="site-footer-tip" data-i18n="footerTip">
+        This page is free to use, but the API costs money. If it helps you, tips are welcome to my Solana
+        address:
+      </p>
+      <p class="site-footer-donate">
+        <code
+          class="site-footer-tip-addr"
+          id="tipDonateAddr"
+          tabindex="0"
+          role="button"
+          data-i18n-title="tipAddrTitle"
+          title="Click to copy address"
+          >rUW3hgdEmKUrMoiL7vmWTkR2w8bFNgpVCwdZ8UAbXuM</code>
+      </p>
+      <p class="site-footer-dev">
+        <img
+          class="site-footer-avatar"
+          src="assets/kkmoat-pfp.png"
+          width="36"
+          height="36"
+          alt="Developer avatar"
+          data-i18n-alt-avatar
+          decoding="async"
+        />
+        <span class="site-footer-dev-row">
+          <span class="site-footer-dev-left">
+            <span data-i18n="footerDevDeveloper">Developer:</span>
+            <a href="https://x.com/kkmoat" target="_blank" rel="noopener noreferrer">X(Twitter)</a>
+            <span class="site-footer-dev-sep"> · </span>
+            <a
+              class="site-footer-dev-gh-link"
+              href="https://github.com/kkmoat"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Github</a>
+          </span>
+          <span class="site-footer-dev-right">
+            <span class="site-footer-dev-right-inner">
+              <span data-i18n="footerRaikuOfficial">Raiku (中文社区):</span>
+              <a href="https://x.com/RaikuCN" target="_blank" rel="noopener noreferrer">X(Twitter)</a>
+              <span class="site-footer-dev-sep"> · </span>
+              <a
+                class="site-footer-dev-raiku-tg"
+                href="https://t.me/RaikuCN"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Telegram</a>
+              <img
+                class="site-footer-raiku-logo"
+                src="assets/site-logo.png"
+                width="30"
+                height="30"
+                alt="Raiku China"
+                data-i18n-alt-logo
+                decoding="async"
+              />
+            </span>
+          </span>
+        </span>
+      </p>
+      <p class="site-footer-tg">
+        <span data-i18n="footerTgLine">Telegram:</span>
+        <a href="https://t.me/kkmoat" target="_blank" rel="noopener noreferrer">@kkmoat</a>
+        <span class="site-footer-tg-hint" data-i18n="footerTgHint"
+          >(Contact the developer for more query quota.)</span>
+      </p>
+    </footer>
+  </div>
+
+  <div id="pwdModal" class="pwd-modal" hidden role="dialog" aria-modal="true" aria-labelledby="pwdModalTitle">
+    <div class="pwd-modal-backdrop" id="pwdModalBackdrop"></div>
+    <div class="pwd-modal-card">
+      <p id="pwdModalTitle" data-i18n="modalTitle">Enter password</p>
+      <p id="pwdModalMsg"></p>
+      <input
+        type="password"
+        id="pwdModalInput"
+        autocomplete="new-password"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        data-lpignore="true"
+        data-1p-ignore="true"
+      />
+      <div class="pwd-modal-actions">
+        <button type="button" class="btn-secondary" id="pwdModalCancel" data-i18n="modalCancel">Cancel</button>
+        <button type="button" class="btn-primary" id="pwdModalConfirm" data-i18n="modalConfirm">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const onlyCompressedEl = $("onlyCompressed");
+      const onlyRaikuCollectionEl = $("onlyRaikuCollection");
+      const addressesEl = $("addresses");
+      const pwdModalEl = $("pwdModal");
+      const pwdModalBackdropEl = $("pwdModalBackdrop");
+      const pwdModalMsgEl = $("pwdModalMsg");
+      const pwdModalInputEl = $("pwdModalInput");
+      const pwdModalConfirmEl = $("pwdModalConfirm");
+      const pwdModalCancelEl = $("pwdModalCancel");
+      const btnRun = $("btnRun");
+      const btnClear = $("btnClear");
+      const btnPrev = $("btnPrev");
+      const btnNext = $("btnNext");
+      const progressEl = $("progress");
+      const resultsEl = $("results");
+      const resultsMetaEl = $("resultsMeta");
+      const pageSizeSelect = $("pageSizeSelect");
+      const pageInfoEl = $("pageInfo");
+      const langEnBtn = $("langEn");
+      const langZhBtn = $("langZh");
+      const tipDonateAddrEl = $("tipDonateAddr");
+
+      const LANG_KEY = "cnft_ui_lang";
+
+      const STR = {
+        en: {
+          pageTitle: "Solana wallet NFT / cNFT lookup (RaikuCN)",
+          labelWallets: "Wallet addresses",
+          phWallets: "Enter Solana wallet address(es), one per line...",
+          chkCompressed: "Compressed NFTs (cNFT) only",
+          chkRaiku: "Only collections whose name contains Raiku",
+          btnRun: "Run query",
+          btnClear: "Clear results",
+          pagerPerPage: "Per page",
+          pagerWallets: "wallets",
+          pageSizeTitle: "Wallets per page",
+          btnPrev: "Prev",
+          btnNext: "Next",
+          footerHelius:
+            "This page only talks to Helius in your browser. Your addresses are not sent to our servers or stored.",
+          footerTip:
+            "This page is free to use, but the API costs money. If it helps you, tips are welcome to my Solana address:",
+          footerDevDeveloper: "Developer:",
+          footerRaikuOfficial: "Raiku (中文社区):",
+          footerTgLine: "Telegram:",
+          footerTgHint: "(Contact the developer for more query quota.)",
+          tipAddrTitle: "Click to copy address",
+          altLogo: "Raiku China",
+          altAvatar: "Developer avatar",
+          modalTitle: "Enter password",
+          modalCancel: "Cancel",
+          modalConfirm: "OK",
+          modalBatch:
+            "You are querying multiple addresses. Enter the password to continue.",
+          modalCooldownFallback:
+            "Queries are limited to once per minute without a password. Enter the password to continue.",
+          cooldownWait: "Please wait {sec} seconds (one query per minute).",
+          alertNoAddresses: "Enter at least one address.",
+          alertBadAddrPrefix: "These lines are not valid Solana addresses:",
+          alertApiConfig:
+            "Built-in connection error. Refresh the page or contact the maintainer.",
+          alertPwdEmpty: "Please enter the password.",
+          alertPwdWrong: "Incorrect password.",
+          alertCopyFail: "Copy failed. Select the address and copy manually.",
+          copied: "Copied to clipboard",
+          unnamed: "(Untitled)",
+          collectionPrefix: "Collection: ",
+          tagNft: "NFT",
+          badgeFailed: "Failed",
+          badgeOk: "{n} items",
+          badgeRawPart: " (raw {n})",
+          emptyDefault: "No matching assets.",
+          emptyRaiku:
+            "No NFTs in a collection whose name contains “Raiku”. Uncheck the filter and try again.",
+          emptyCnft: "No compressed NFTs found. Try turning off “cNFT only”.",
+          progressQuerying: "Querying {cur} / {total}: {short}…",
+          progressDone: "Done. {total} wallet(s).",
+          pageInfo: "Page {cur} / {total} ({count} wallets)",
+          rpcError: "RPC error",
+        },
+        zh: {
+          pageTitle: "Solana 地址 NFT / cNFT 查询（RaikuCN）",
+          labelWallets: "钱包地址",
+          phWallets: "请输入 Solana 钱包地址，每行一个…",
+          chkCompressed: "仅统计压缩 NFT（cNFT）",
+          chkRaiku: "仅显示合集名称包含 Raiku 的 NFT",
+          btnRun: "开始查询",
+          btnClear: "清空结果",
+          pagerPerPage: "每页显示",
+          pagerWallets: "个地址",
+          pageSizeTitle: "每页地址数量",
+          btnPrev: "上一页",
+          btnNext: "下一页",
+          footerHelius:
+            "本页仅在浏览器内向 Helius 发起查询，您的地址不会发送到其他自建服务器或保留痕迹，请放心使用。",
+          footerTip:
+            "因本网页为免费开放，但是 API 仍需要付费，如果你认为网站对你有帮助的话，可以向我的 Solana 地址进行打赏：",
+          footerDevDeveloper: "开发者：",
+          footerRaikuOfficial: "Raiku中文官方：",
+          footerTgLine: "Telegram：",
+          footerTgHint: "（可联系开发者获取更多查询次数）",
+          tipAddrTitle: "单击复制地址",
+          altLogo: "Raiku China",
+          altAvatar: "kkmoat 头像",
+          modalTitle: "请输入密码",
+          modalCancel: "取消",
+          modalConfirm: "确定",
+          modalBatch: "当前为多个地址批量查询，请输入密码后继续。",
+          modalCooldownFallback: "当前查询过于频繁（每分钟最多 1 次），请输入密码后继续。",
+          cooldownWait: "每 1 分钟只能查询一次，请再等 {sec} 秒。",
+          alertNoAddresses: "请至少输入一个地址。",
+          alertBadAddrPrefix: "以下行不像 Solana 地址：",
+          alertApiConfig: "内置连接配置异常，请刷新页面或联系页面维护者。",
+          alertPwdEmpty: "请输入密码。",
+          alertPwdWrong: "密码不正确。",
+          alertCopyFail: "复制失败，请手动选择地址后复制。",
+          copied: "已复制到剪贴板",
+          unnamed: "(未命名)",
+          collectionPrefix: "合集：",
+          tagNft: "NFT",
+          badgeFailed: "失败",
+          badgeOk: "{n} 件",
+          badgeRawPart: "（原始 {n}）",
+          emptyDefault: "未找到符合条件的资产。",
+          emptyRaiku:
+            "没有合集名称包含「Raiku」的 NFT（请取消「仅显示合集名称包含 Raiku 的 NFT」后重新查询）",
+          emptyCnft: "未找到压缩 NFT（可取消「仅 cNFT」再试）",
+          progressQuerying: "正在查询 {cur} / {total}：{short}…",
+          progressDone: "完成，共 {total} 个地址。",
+          pageInfo: "第 {cur} / {total} 页（共 {count} 个地址）",
+          rpcError: "RPC错误",
+        },
+      };
+
+      let uiLang = "en";
+      try {
+        const s = localStorage.getItem(LANG_KEY);
+        if (s === "zh" || s === "en") uiLang = s;
+      } catch (e) {}
+
+      function t(key, vars) {
+        const table = STR[uiLang] || STR.en;
+        let s = table[key];
+        if (s == null) s = STR.en[key] != null ? STR.en[key] : key;
+        s = String(s);
+        if (vars) {
+          Object.keys(vars).forEach(function (k) {
+            s = s.split("{" + k + "}").join(String(vars[k]));
+          });
+        }
+        return s;
+      }
+
+      function applyStaticI18n() {
+        document.documentElement.setAttribute(
+          "lang",
+          uiLang === "zh" ? "zh-CN" : "en"
+        );
+        document.title = t("pageTitle");
+        document.querySelectorAll("[data-i18n]").forEach(function (el) {
+          const k = el.getAttribute("data-i18n");
+          if (k) el.textContent = t(k);
+        });
+        document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+          const k = el.getAttribute("data-i18n-placeholder");
+          if (k) el.setAttribute("placeholder", t(k));
+        });
+        document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+          const k = el.getAttribute("data-i18n-title");
+          if (k) el.setAttribute("title", t(k));
+        });
+        const logoAlt = t("altLogo");
+        document.querySelectorAll("[data-i18n-alt-logo]").forEach(function (el) {
+          el.setAttribute("alt", logoAlt);
+        });
+        const av = document.querySelector("[data-i18n-alt-avatar]");
+        if (av) av.setAttribute("alt", t("altAvatar"));
+        if (tipDonateAddrEl) {
+          tipDonateAddrEl.setAttribute("title", t("tipAddrTitle"));
+        }
+        if (langEnBtn) langEnBtn.setAttribute("aria-pressed", uiLang === "en" ? "true" : "false");
+        if (langZhBtn) langZhBtn.setAttribute("aria-pressed", uiLang === "zh" ? "true" : "false");
+      }
+
+      function setLang(lang) {
+        if (lang !== "en" && lang !== "zh") return;
+        uiLang = lang;
+        try {
+          localStorage.setItem(LANG_KEY, lang);
+        } catch (e) {}
+        applyStaticI18n();
+        renderResultsView();
+      }
+
+      if (langEnBtn) {
+        langEnBtn.addEventListener("click", function () {
+          setLang("en");
+        });
+      }
+      if (langZhBtn) {
+        langZhBtn.addEventListener("click", function () {
+          setLang("zh");
+        });
+      }
+
+      let resultsBuffer = [];
+      let resultsCurrentPage = 1;
+
+      const SOLANA_ADDR_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
+      /** 内置 Key（Base64），勿在公开仓库长期暴露；真正防滥用需服务端代理。 */
+      const HELIUS_KEY_B64 = "NzZkYTNmODItYzU5Ny00Y2ExLWJmMTAtMzAwYjA5MmZlZTZm";
+
+      const QUERY_COOLDOWN_MS = 60000;
+      const QUERY_COOLDOWN_STORAGE_KEY = "cnft_last_query_ts_v2";
+      const BATCH_QUERY_MIN_ADDRS = 2;
+      const BATCH_PASSWORD = "kkraiku";
+
+      function getHeliusApiKey() {
+        try {
+          return atob(HELIUS_KEY_B64);
+        } catch (e) {
+          return "";
+        }
+      }
+
+      function heliusUrl() {
+        const host = "https://mainnet.helius-rpc.com";
+        const key = getHeliusApiKey();
+        return host + "/?api-key=" + encodeURIComponent(key);
+      }
+
+      function checkMinuteCooldown() {
+        let last = 0;
+        try {
+          last = parseInt(
+            sessionStorage.getItem(QUERY_COOLDOWN_STORAGE_KEY),
+            10
+          );
+        } catch (e) {
+          last = 0;
+        }
+        if (!last || isNaN(last)) last = 0;
+        const now = Date.now();
+        const elapsed = now - last;
+        if (last && elapsed < QUERY_COOLDOWN_MS) {
+          const sec = Math.ceil((QUERY_COOLDOWN_MS - elapsed) / 1000);
+          return {
+            ok: false,
+            msg: t("cooldownWait", { sec: String(sec) }),
+          };
+        }
+        return { ok: true };
+      }
+
+      function touchMinuteCooldown() {
+        try {
+          sessionStorage.setItem(
+            QUERY_COOLDOWN_STORAGE_KEY,
+            String(Date.now())
+          );
+        } catch (e) {}
+      }
+
+      /**
+       * @param {"batch"|"cooldown"} reason
+       * @param {string} [cooldownDetail] 来自 checkMinuteCooldown 的提示
+       * @returns {Promise<string|null>} 输入的密码（trim），取消为 null
+       */
+      function openPasswordModal(reason, cooldownDetail) {
+        return new Promise(function (resolve) {
+          let settled = false;
+
+          function finish(value) {
+            if (settled) return;
+            settled = true;
+            pwdModalEl.hidden = true;
+            pwdModalInputEl.value = "";
+            document.removeEventListener("keydown", onKeyDown, true);
+            resolve(value);
+          }
+
+          function onKeyDown(ev) {
+            if (ev.key === "Escape") {
+              ev.preventDefault();
+              finish(null);
+            }
+            if (ev.key === "Enter") {
+              ev.preventDefault();
+              onConfirm();
+            }
+          }
+
+          function onConfirm() {
+            finish(pwdModalInputEl.value.trim());
+          }
+
+          function onCancel() {
+            finish(null);
+          }
+
+          if (reason === "batch") {
+            pwdModalMsgEl.textContent = t("modalBatch");
+          } else {
+            pwdModalMsgEl.textContent =
+              (cooldownDetail && String(cooldownDetail).trim()) ||
+              t("modalCooldownFallback");
+          }
+
+          pwdModalEl.hidden = false;
+          pwdModalInputEl.focus();
+
+          pwdModalConfirmEl.onclick = function () {
+            onConfirm();
+          };
+          pwdModalCancelEl.onclick = function () {
+            onCancel();
+          };
+          pwdModalBackdropEl.onclick = function () {
+            onCancel();
+          };
+
+          document.addEventListener("keydown", onKeyDown, true);
+        });
+      }
+
+      function parseAddresses(text) {
+        return text
+          .split(/\r?\n/)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+      }
+
+      function assetDisplayName(item) {
+        const meta = item.content && item.content.metadata;
+        if (meta && meta.name) return String(meta.name);
+        if (item.content && item.content.json_uri)
+          return String(item.content.json_uri);
+        return item.id || t("unnamed");
+      }
+
+      function isCompressed(item) {
+        return !!(item.compression && item.compression.compressed);
+      }
+
+      function filterItems(items, onlyCompressed) {
+        if (!onlyCompressed) return items;
+        return items.filter(isCompressed);
+      }
+
+      const RAIKU_COLLECTION_NEEDLE = "raiku";
+
+      function pushNonEmpty(arr, s) {
+        if (s == null) return;
+        var t = String(s).trim();
+        if (t) arr.push(t);
+      }
+
+      function collectionNameStringsFromAsset(item) {
+        var out = [];
+        var grouping = item.grouping;
+        if (Array.isArray(grouping)) {
+          grouping.forEach(function (g) {
+            if (!g || g.group_key !== "collection") return;
+            var cm = g.collection_metadata;
+            if (cm && typeof cm === "object") {
+              pushNonEmpty(out, cm.name);
+              pushNonEmpty(out, cm.symbol);
+            }
+          });
+        }
+        var meta = item.content && item.content.metadata;
+        if (meta && meta.collection != null) {
+          var c = meta.collection;
+          if (typeof c === "string") pushNonEmpty(out, c);
+          else if (typeof c === "object") {
+            pushNonEmpty(out, c.name);
+            pushNonEmpty(out, c.family);
+          }
+        }
+        return out;
+      }
+
+      function assetCollectionMatchesRaiku(item) {
+        var names = collectionNameStringsFromAsset(item);
+        for (var i = 0; i < names.length; i++) {
+          if (names[i].toLowerCase().indexOf(RAIKU_COLLECTION_NEEDLE) !== -1) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      async function rpcCall(url, body) {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (data.error) {
+          const msg =
+            (data.error.message || t("rpcError")) +
+            (data.error.code != null ? " (" + data.error.code + ")" : "");
+          throw new Error(msg);
+        }
+        return data;
+      }
+
+      async function fetchAllAssetsForOwner(url, owner) {
+        const all = [];
+        let page = 1;
+        const limit = 1000;
+        for (;;) {
+          const data = await rpcCall(url, {
+            jsonrpc: "2.0",
+            id: "cnft-batch-" + page,
+            method: "getAssetsByOwner",
+            params: {
+              ownerAddress: owner,
+              page,
+              limit,
+              options: {
+                showFungible: false,
+                showNativeBalance: false,
+                showCollectionMetadata: true,
+                showUnverifiedCollections: true,
+              },
+            },
+          });
+          const items = (data.result && data.result.items) || [];
+          all.push.apply(all, items);
+          if (items.length < limit) break;
+          page += 1;
+        }
+        return all;
+      }
+
+      function solscanAccountUrl(network, addr) {
+        var path = "https://solscan.io/account/" + encodeURIComponent(addr);
+        if (network === "devnet") path += "?cluster=devnet";
+        return path + "#portfolio_nfts";
+      }
+
+      function renderCard(addr, network, filtered, rawCount, error, addressNo, postCompressCount) {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const head = document.createElement("div");
+        head.className = "card-head";
+
+        const main = document.createElement("div");
+        main.className = "head-main";
+
+        const serial = document.createElement("span");
+        serial.className = "addr-serial";
+        serial.textContent = addressNo + ".";
+        main.appendChild(serial);
+
+        const addrWrap = document.createElement("div");
+        addrWrap.className = "addr";
+        const a = document.createElement("a");
+        a.href = solscanAccountUrl(network, addr);
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = addr;
+        addrWrap.appendChild(a);
+        main.appendChild(addrWrap);
+        head.appendChild(main);
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        if (error) {
+          badge.classList.add("err");
+          badge.textContent = t("badgeFailed");
+        } else {
+          badge.classList.add("ok");
+          badge.textContent =
+            t("badgeOk", { n: String(filtered.length) }) +
+            (rawCount !== filtered.length
+              ? t("badgeRawPart", { n: String(rawCount) })
+              : "");
+        }
+        head.appendChild(badge);
+
+        card.appendChild(head);
+
+        const body = document.createElement("div");
+        body.className = "card-body";
+
+        if (error) {
+          const err = document.createElement("div");
+          err.className = "err-msg";
+          err.textContent = error;
+          body.appendChild(err);
+        } else if (filtered.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty-nft";
+          let emptyMsg = t("emptyDefault");
+          if (
+            onlyRaikuCollectionEl.checked &&
+            postCompressCount > 0
+          ) {
+            emptyMsg = t("emptyRaiku");
+          } else if (
+            onlyCompressedEl.checked &&
+            rawCount > 0 &&
+            postCompressCount === 0
+          ) {
+            emptyMsg = t("emptyCnft");
+          }
+          empty.textContent = emptyMsg;
+          body.appendChild(empty);
+        } else {
+          const ul = document.createElement("ul");
+          ul.className = "nft-list";
+          filtered.forEach(function (item, i) {
+            const li = document.createElement("li");
+            const idx = document.createElement("span");
+            idx.className = "nft-idx";
+            idx.textContent = i + 1 + ".";
+            const main = document.createElement("div");
+            main.className = "nft-main";
+            const name = document.createElement("span");
+            name.className = "nft-name";
+            name.textContent = assetDisplayName(item);
+            main.appendChild(name);
+            const collNames = collectionNameStringsFromAsset(item);
+            if (collNames.length) {
+              const sub = document.createElement("span");
+              sub.className = "nft-collection";
+              sub.textContent = t("collectionPrefix") + collNames.join(" · ");
+              main.appendChild(sub);
+            }
+            const tag = document.createElement("span");
+            tag.className = isCompressed(item) ? "tag-cnft" : "tag-cnft tag-legacy";
+            tag.textContent = isCompressed(item) ? "cNFT" : t("tagNft");
+            li.appendChild(idx);
+            li.appendChild(main);
+            li.appendChild(tag);
+            ul.appendChild(li);
+          });
+          body.appendChild(ul);
+        }
+
+        card.appendChild(body);
+        return card;
+      }
+
+      function getPageSize() {
+        const n = parseInt(pageSizeSelect.value, 10);
+        return n === 10 || n === 20 || n === 50 || n === 100 ? n : 20;
+      }
+
+      function totalResultPages() {
+        const ps = getPageSize();
+        const n = resultsBuffer.length;
+        return n === 0 ? 1 : Math.ceil(n / ps);
+      }
+
+      function renderResultsView() {
+        if (resultsBuffer.length === 0) {
+          resultsMetaEl.hidden = true;
+          resultsEl.innerHTML = "";
+          pageInfoEl.textContent = "";
+          return;
+        }
+
+        resultsMetaEl.hidden = false;
+        const ps = getPageSize();
+        const totalP = totalResultPages();
+        if (resultsCurrentPage > totalP) resultsCurrentPage = totalP;
+        if (resultsCurrentPage < 1) resultsCurrentPage = 1;
+
+        const start = (resultsCurrentPage - 1) * ps;
+        const slice = resultsBuffer.slice(start, start + ps);
+
+        resultsEl.innerHTML = "";
+        slice.forEach(function (row) {
+          resultsEl.appendChild(
+            renderCard(
+              row.addr,
+              row.network,
+              row.filtered,
+              row.rawCount,
+              row.error,
+              row.addressNo,
+              row.postCompressCount
+            )
+          );
+        });
+
+        pageInfoEl.textContent = t("pageInfo", {
+          cur: String(resultsCurrentPage),
+          total: String(totalP),
+          count: String(resultsBuffer.length),
+        });
+        btnPrev.disabled = resultsCurrentPage <= 1;
+        btnNext.disabled = resultsCurrentPage >= totalP;
+      }
+
+      pageSizeSelect.addEventListener("change", function () {
+        resultsCurrentPage = 1;
+        renderResultsView();
+      });
+
+      btnPrev.addEventListener("click", function () {
+        if (resultsCurrentPage > 1) {
+          resultsCurrentPage -= 1;
+          renderResultsView();
+        }
+      });
+
+      btnNext.addEventListener("click", function () {
+        if (resultsCurrentPage < totalResultPages()) {
+          resultsCurrentPage += 1;
+          renderResultsView();
+        }
+      });
+
+      btnClear.addEventListener("click", function () {
+        resultsBuffer = [];
+        resultsCurrentPage = 1;
+        resultsMetaEl.hidden = true;
+        resultsEl.innerHTML = "";
+        pageInfoEl.textContent = "";
+        progressEl.textContent = "";
+      });
+
+      btnRun.addEventListener("click", async function () {
+        const addrs = parseAddresses(addressesEl.value);
+        if (addrs.length === 0) {
+          alert(t("alertNoAddresses"));
+          return;
+        }
+
+        const bad = addrs.filter(function (a) {
+          return !SOLANA_ADDR_RE.test(a);
+        });
+        if (bad.length) {
+          alert(t("alertBadAddrPrefix") + "\n" + bad.slice(0, 5).join("\n"));
+          return;
+        }
+
+        if (!getHeliusApiKey()) {
+          alert(t("alertApiConfig"));
+          return;
+        }
+
+        let needPwdModal = false;
+        let pwdReason = "";
+        let coolDetail = "";
+        if (addrs.length >= BATCH_QUERY_MIN_ADDRS) {
+          needPwdModal = true;
+          pwdReason = "batch";
+        } else {
+          const cool = checkMinuteCooldown();
+          if (!cool.ok) {
+            needPwdModal = true;
+            pwdReason = "cooldown";
+            coolDetail = cool.msg;
+          }
+        }
+
+        if (needPwdModal) {
+          const entered = await openPasswordModal(pwdReason, coolDetail);
+          if (entered === null) {
+            return;
+          }
+          if (!entered) {
+            alert(t("alertPwdEmpty"));
+            return;
+          }
+          if (entered !== BATCH_PASSWORD) {
+            alert(t("alertPwdWrong"));
+            return;
+          }
+        } else {
+          touchMinuteCooldown();
+        }
+
+        const network = "mainnet";
+        const url = heliusUrl();
+        const onlyCompressed = onlyCompressedEl.checked;
+        const onlyRaikuCollection = onlyRaikuCollectionEl.checked;
+
+        resultsBuffer = [];
+        resultsCurrentPage = 1;
+        resultsEl.innerHTML = "";
+        resultsMetaEl.hidden = true;
+        btnRun.disabled = true;
+        btnClear.disabled = true;
+
+        for (let i = 0; i < addrs.length; i++) {
+          const addr = addrs[i];
+          progressEl.textContent = t("progressQuerying", {
+            cur: String(i + 1),
+            total: String(addrs.length),
+            short: addr.slice(0, 8),
+          });
+
+          try {
+            const raw = await fetchAllAssetsForOwner(url, addr);
+            const afterCompressed = filterItems(raw, onlyCompressed);
+            const filtered = onlyRaikuCollection
+              ? afterCompressed.filter(assetCollectionMatchesRaiku)
+              : afterCompressed;
+            resultsBuffer.push({
+              addr: addr,
+              network: network,
+              filtered: filtered,
+              rawCount: raw.length,
+              postCompressCount: afterCompressed.length,
+              error: null,
+              addressNo: i + 1,
+            });
+          } catch (e) {
+            resultsBuffer.push({
+              addr: addr,
+              network: network,
+              filtered: [],
+              rawCount: 0,
+              postCompressCount: 0,
+              error: e.message || String(e),
+              addressNo: i + 1,
+            });
+          }
+        }
+
+        progressEl.textContent = t("progressDone", {
+          total: String(addrs.length),
+        });
+        renderResultsView();
+        btnRun.disabled = false;
+        btnClear.disabled = false;
+      });
+
+      const TIP_DONATE_ADDR = "rUW3hgdEmKUrMoiL7vmWTkR2w8bFNgpVCwdZ8UAbXuM";
+
+      async function copyTipDonateAddress() {
+        if (!tipDonateAddrEl) return;
+        try {
+          if (
+            navigator.clipboard &&
+            typeof navigator.clipboard.writeText === "function"
+          ) {
+            await navigator.clipboard.writeText(TIP_DONATE_ADDR);
+          } else {
+            const ta = document.createElement("textarea");
+            ta.value = TIP_DONATE_ADDR;
+            ta.setAttribute("readonly", "");
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+          }
+          const prev = tipDonateAddrEl.textContent;
+          tipDonateAddrEl.textContent = t("copied");
+          setTimeout(function () {
+            tipDonateAddrEl.textContent = prev;
+          }, 1400);
+        } catch (e) {
+          alert(t("alertCopyFail"));
+        }
+      }
+
+      if (tipDonateAddrEl) {
+        tipDonateAddrEl.addEventListener("click", function (e) {
+          e.preventDefault();
+          copyTipDonateAddress();
+        });
+        tipDonateAddrEl.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            copyTipDonateAddress();
+          }
+        });
+      }
+
+      applyStaticI18n();
+
+    })();
+  </script>
+</body>
+</html>
